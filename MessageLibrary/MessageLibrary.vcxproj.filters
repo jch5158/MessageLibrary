@@ -1,0 +1,66 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <Filter Include="소스 파일">
+      <UniqueIdentifier>{4FC737F1-C7A5-4376-A066-2A32D752A2FF}</UniqueIdentifier>
+      <Extensions>cpp;c;cc;cxx;c++;cppm;ixx;def;odl;idl;hpj;bat;asm;asmx</Extensions>
+    </Filter>
+    <Filter Include="헤더 파일">
+      <UniqueIdentifier>{93995380-89BD-4b04-88EB-625FBE52EBFB}</UniqueIdentifier>
+      <Extensions>h;hh;hpp;hxx;h++;hm;inl;inc;ipp;xsd</Extensions>
+    </Filter>
+    <Filter Include="리소스 파일">
+      <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
+      <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav;mfcribbon-ms</Extensions>
+    </Filter>
+    <Filter Include="Library">
+      <UniqueIdentifier>{35990c3c-4457-46e3-b22c-9424240ba3dd}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Library\LockFreeObjectFreeList">
+      <UniqueIdentifier>{f8cdedd8-add3-4c91-b647-a93898125abb}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Library\Message">
+      <UniqueIdentifier>{c8ec003c-7386-49ed-b7ea-b918989ed427}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Library\Dump">
+      <UniqueIdentifier>{09aed296-5968-4079-bcfa-44036e319973}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="MessageLibrary.cpp">
+      <Filter>소스 파일</Filter>
+    </ClCompile>
+    <ClCompile Include="stdafx.cpp">
+      <Filter>소스 파일</Filter>
+    </ClCompile>
+    <ClCompile Include="CMessage.cpp">
+      <Filter>Library\Message</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\LockFreeObjectFreeList\ObjectFreeListLib\CLockFreeObjectFreeList.cpp">
+      <Filter>Library\LockFreeObjectFreeList</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\LockFreeObjectFreeList\ObjectFreeListLib\CTLSLockFreeObjectFreeList.cpp">
+      <Filter>Library\LockFreeObjectFreeList</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\DumpLibrary\DumpLibrary\CCrashDump.cpp">
+      <Filter>Library\Dump</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="stdafx.h">
+      <Filter>헤더 파일</Filter>
+    </ClInclude>
+    <ClInclude Include="CMessage.h">
+      <Filter>Library\Message</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\LockFreeObjectFreeList\ObjectFreeListLib\CLockFreeObjectFreeList.h">
+      <Filter>Library\LockFreeObjectFreeList</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\LockFreeObjectFreeList\ObjectFreeListLib\CTLSLockFreeObjectFreeList.h">
+      <Filter>Library\LockFreeObjectFreeList</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\DumpLibrary\DumpLibrary\CCrashDump.h">
+      <Filter>Library\Dump</Filter>
+    </ClInclude>
+  </ItemGroup>
+</Project>
