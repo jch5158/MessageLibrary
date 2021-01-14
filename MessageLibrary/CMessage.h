@@ -91,6 +91,9 @@ private:
 public:
 
 	// 헤더 셋팅을 위한 friend
+	friend class CNetServer;
+
+	// 헤더 셋팅을 위한 friend
 	friend class CLanServer;
 
 	// CObjectFreeList에서 생성자 및 소멸자를 위한 friend
@@ -492,7 +495,8 @@ public:
 private:
 
 	CMessage(int size = 2000)
-		: mFront(-1)
+		: mbEndcodingFlag(false)
+		, mFront(-1)
 		, mRear(-1)
 		, mDataSize(0)
 		, mBufferLen(size)
@@ -510,18 +514,127 @@ private:
 
 	~CMessage()
 	{
-
 		Release();
 	}
 
-	void setLanHeader(stLanHeader* pLanHeader)
-	{	
-		//mpHeaderPtr -= mLanHeaderSize;
+	void endcoding()
+	{
+		if (mbEndcodingFlag == true)
+		{
+			return;
+		}
 
+		stNetHeader netHeader;
+
+		netHeader.code = 0x89;
+		netHeader.payloadSize = mDataSize;
+		netHeader.randomKey = rand();
+		netHeader.checkSum = makeCheckSum();
+
+		setNetHeader(&netHeader);
+
+		BYTE encodeKey = 0;
+		BYTE encodeData = 0;
+
+		BYTE* pEncodeData = (BYTE*)(mpPayloadPtr - 1);
+
+		for (int index = 0; index < mDataSize + 1; ++index)
+		{
+			encodeKey = pEncodeData[index] ^ (encodeKey + netHeader.randomKey + index + 1);
+
+			encodeData = encodeKey ^ (encodeData + mStaticKey + index + 1);
+
+			pEncodeData[index] = encodeData;
+		}
+
+		mbEndcodingFlag = true;
+	}
+
+	bool decoding()
+	{
+		BYTE randomKey =  ((stNetHeader*)GetMessagePtr())->randomKey;
+
+		BYTE decodeKey = NULL;
+
+		BYTE encodeKey = NULL;
+
+		BYTE decodeData = NULL;
+
+		BYTE encodeData = NULL;
+
+		BYTE* pDecodeData = (BYTE*)(mpPayloadPtr - 1);
+
+		int length = mDataSize - 4;
+		for (int index = 0; index < length; ++index)
+		{
+			decodeKey = pDecodeData[index] ^ (encodeKey + randomKey + index + 1);
+			decodeData = decodeKey ^ (encodeData + mStaticKey + index + 1);
+
+			pDecodeData[index] = decodeData;
+
+			encodeKey = decodeData ^ (encodeKey + randomKey + index + 1);
+			encodeData = encodeKey ^ (encodeData + mStaticKey + index + 1);
+		}
+
+		if (pDecodeData[0] != makeCheckSum())
+		{
+			return false;
+		}
+
+		return true;
+
+	}
+
+	bool decoding(stNetHeader* pNetHeader)
+	{
+		BYTE randomKey = pNetHeader->randomKey;
+
+		BYTE decodeKey = NULL;
+
+		BYTE encodeKey = NULL;
+
+		BYTE decodeData = NULL;
+
+		BYTE encodeData = NULL;
+
+		BYTE* pDecodeData = (BYTE*)(mpPayloadPtr - 1);
+
+		int length = mDataSize + 1;
+		for (int index = 0; index < length; ++index)
+		{
+			decodeKey = pDecodeData[index] ^ (encodeKey + randomKey + index + 1);
+			decodeData = decodeKey ^ (encodeData + mStaticKey + index + 1);
+
+			pDecodeData[index] = decodeData;
+
+			encodeKey = decodeData ^ (encodeKey + randomKey + index + 1);
+			encodeData = encodeKey ^ (encodeData + mStaticKey + index + 1);
+		}
+
+		if (pDecodeData[0] != makeCheckSum())
+		{
+			return false;
+		}
+
+		return true;
+	}
+
+	BYTE makeCheckSum()
+	{
+		BYTE checkSum = 0;
+		
+		for (int offset = 0; offset < mDataSize; ++offset)
+		{
+			checkSum += *(mpPayloadPtr + offset);
+		}
+
+		return checkSum;
+	}
+
+	void setLanHeader(stLanHeader* pLanHeader)
+	{			
 		mpHeaderPtr -= sizeof(stLanHeader);
 
-		//memcpy(mpHeaderPtr, pLanHeader, mLanHeaderSize);
-		
 		*((stLanHeader*)mpHeaderPtr) = *pLanHeader;
 
 		mDataSize += sizeof(stLanHeader);
@@ -529,11 +642,7 @@ private:
 
 	void setNetHeader(stNetHeader* pNetHeader)
 	{
-		//mpHeaderPtr -= mNetHeaderSize;
-		
 		mpHeaderPtr -= sizeof(pNetHeader);
-
-		//memcpy(mpHeaderPtr, pNetHeader, mNetHeaderSize);
 
 		*((stNetHeader*)mpHeaderPtr) = *pNetHeader;
 
@@ -543,10 +652,10 @@ private:
 	static CLockFreeObjectFreeList<CMessage> mMessageFreeList;
 
 	static CTLSLockFreeObjectFreeList<CMessage> mTlsMessageFreeList;
+	
+	const static BYTE mStaticKey = 0xa9;
 
-	//const int mNetHeaderSize;
-
-	//const int mLanHeaderSize;
+	bool mbEndcodingFlag;
 	
 	int mBufferLen;
 
