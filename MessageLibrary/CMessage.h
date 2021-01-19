@@ -11,18 +11,19 @@ public:
 	{	
 		mBufferSize = bufferSize;
 
-		memcpy_s(mMessageLog, sizeof(mMessageLog), buffer, bufferSize);
+		mpMessageLog = buffer;
 
-		memcpy_s(mErrorDataLog, sizeof(mErrorDataLog), data, wcslen(data) * 2);
+		wcscpy_s(mErrorTextLog, _countof(mErrorTextLog), data);
+	
 	}
 
 	CExceptionObject(const CExceptionObject &exceptionObject)
 	{
 		mBufferSize = exceptionObject.mBufferSize;
 
-		memcpy_s(mMessageLog, sizeof(mMessageLog), exceptionObject.mMessageLog, exceptionObject.mBufferSize);
+		mpMessageLog = exceptionObject.mpMessageLog;
 
-		memcpy_s(mErrorDataLog, sizeof(mErrorDataLog), exceptionObject.mErrorDataLog, wcslen(exceptionObject.mErrorDataLog) * 2);
+		wcscpy_s(mErrorTextLog, _countof(mErrorTextLog), exceptionObject.mErrorTextLog);
 	}
 
 	~CExceptionObject()
@@ -32,42 +33,16 @@ public:
 
 	void PrintExceptionData(void)
 	{		
-		AcquireSRWLockExclusive(&mSrwLock);
-
-		FILE* fp = nullptr;
-
-		// 에러 파일 오푼
-		_wfopen_s(&fp, L"ErrorDump.txt", L"a+t");
-		if (fp != nullptr)
-		{
-			for (int iCnt = 0; iCnt < mBufferSize; ++iCnt)
-			{
-				// 메시지 로그
-				fprintf_s(fp, "%02x ", mMessageLog[iCnt]);
-			}
-
-			// 에러 함수의 인자 데이터 타입 
-			fwprintf_s(fp, mErrorDataLog);
-
-			fclose(fp);
-		}
-
-		ReleaseSRWLockExclusive(&mSrwLock);
+		CSystemLog::GetInstance()->LogHex(true, CSystemLog::eLogLevel::LogLevelError, L"ExceptionObject", (const WCHAR*)mErrorTextLog, (BYTE*)mpMessageLog, mBufferSize);
 	}
-
-
-public:
-
-	static SRWLOCK mSrwLock;
 
 private:
 
-	int mBufferSize;
+	 int mBufferSize;
 
-	 char mMessageLog[2000] = { 0, };
+	 char *mpMessageLog;
 
-	 WCHAR mErrorDataLog[200] = { 0, };
-
+	 WCHAR mErrorTextLog[200];
 };
 
 
@@ -75,6 +50,7 @@ class  CMessage
 {
 private:
 
+	#pragma pack(1)
 	struct stLanHeader
 	{
 		WORD payloadSize;
@@ -87,6 +63,7 @@ private:
 		BYTE randomKey;
 		BYTE checkSum;
 	};
+	#pragma pack()
 
 public:
 
@@ -176,9 +153,22 @@ public:
 		return InterlockedDecrement(&mReferenceCount);
 	}
 
-	CMessage& operator << (char chValue)
+
+	CMessage& operator << (bool value)
 	{
-		mpPayloadPtr[mRear + 1] = chValue;
+		mpPayloadPtr[mRear + 1] = value;
+
+		mRear += sizeof(bool);
+
+		mDataSize += sizeof(bool);
+
+		return *this;
+	}
+
+
+	CMessage& operator << (char value)
+	{
+		mpPayloadPtr[mRear + 1] = value;
 
 		mRear += sizeof(char);
 
@@ -187,22 +177,31 @@ public:
 		return *this;
 	}
 
-	CMessage& operator << (unsigned char uchValue)
+	CMessage& operator << (unsigned char value)
 	{
-		mpPayloadPtr[mRear + 1] = (unsigned char)uchValue;
+		mpPayloadPtr[mRear + 1] = (unsigned char)value;
 
-		mRear += sizeof(char);
+		mRear += sizeof(unsigned char);
 
-		mDataSize += sizeof(char);
+		mDataSize += sizeof(unsigned char);
 
 		return *this;
 	}
 
-	CMessage& operator << (short sValue)
-	{
-		short* shortBuffer = (short*)&mpPayloadPtr[mRear + 1];
+	//CMessage& operator << (BYTE value)
+	//{
+	//	mpPayloadPtr[mRear + 1] = (BYTE)value;
 
-		*shortBuffer = sValue;
+	//	mRear += sizeof(BYTE);
+
+	//	mDataSize += sizeof(BYTE);
+
+	//	return *this;
+	//}
+
+	CMessage& operator << (short value)
+	{
+		*((short*)&mpPayloadPtr[mRear + 1]) = value;
 
 		mRear += sizeof(short);
 
@@ -211,24 +210,31 @@ public:
 		return *this;
 	}
 
-	CMessage& operator << (unsigned short usValue)
+	CMessage& operator << (unsigned short value)
 	{
-		unsigned short* unShortBuffer = (unsigned short*)&mpPayloadPtr[mRear + 1];
+		*((unsigned short*)&mpPayloadPtr[mRear + 1]) = value;
 
-		*unShortBuffer = usValue;
+		mRear += sizeof(unsigned short);
 
-		mRear += sizeof(short);
-
-		mDataSize += sizeof(short);
+		mDataSize += sizeof(unsigned short);
 
 		return *this;
 	}
 
-	CMessage& operator << (int iValue)
-	{
-		int* intBuffer = (int*)&mpPayloadPtr[mRear + 1];
+	//CMessage& operator << (WORD value)
+	//{
+	//	*((WORD*)&mpPayloadPtr[mRear + 1]) = value;
 
-		*intBuffer = iValue;
+	//	mRear += sizeof(WORD);
+
+	//	mDataSize += sizeof(WORD);
+
+	//	return *this;
+	//}
+
+	CMessage& operator << (int value)
+	{		
+		*((int*)&mpPayloadPtr[mRear + 1]) = value;
 
 		mRear += sizeof(int);
 
@@ -237,24 +243,20 @@ public:
 		return *this;
 	}
 
-	CMessage& operator << (unsigned int uiValue)
-	{
-		int* unIntBuffer = (int*)&mpPayloadPtr[mRear + 1];
+	CMessage& operator << (unsigned int value)
+	{	
+		*((unsigned int*)&mpPayloadPtr[mRear + 1]) = value;
 
-		*unIntBuffer = uiValue;
+		mRear += sizeof(unsigned int);
 
-		mRear += sizeof(int);
-
-		mDataSize += sizeof(int);
+		mDataSize += sizeof(unsigned int);
 
 		return *this;
 	}
 
-	CMessage& operator << (long lValue)
+	CMessage& operator << (long value)
 	{
-		long* longBuffer = (long*)&mpPayloadPtr[mRear + 1];
-
-		*longBuffer = lValue;
+		*((long*)&mpPayloadPtr[mRear + 1]) = value;
 
 		mRear += sizeof(long);
 
@@ -263,11 +265,9 @@ public:
 		return *this;
 	}
 
-	CMessage& operator << (unsigned long ulValue)
-	{
-		unsigned long* unLongBuffer = (unsigned long*)&mpPayloadPtr[mRear + 1];
-
-		*unLongBuffer = ulValue;
+	CMessage& operator << (unsigned long value)
+	{		
+		*((unsigned long*)&mpPayloadPtr[mRear + 1]) = value;
 
 		mRear += sizeof(long);
 
@@ -276,11 +276,20 @@ public:
 		return *this;
 	}
 
-	CMessage& operator << (long long llValue)
-	{
-		long long* llBuffer = (long long*)&mpPayloadPtr[mRear + 1];
+	//CMessage& operator << (DWORD value)
+	//{
+	//	*((DWORD*)&mpPayloadPtr[mRear + 1]) = value;
 
-		*llBuffer = llValue;
+	//	mRear += sizeof(DWORD);
+
+	//	mDataSize += sizeof(DWORD);
+
+	//	return *this;
+	//}
+
+	CMessage& operator << (long long value)
+	{
+		*((long long*)&mpPayloadPtr[mRear + 1]) = value;
 
 		mRear += sizeof(long long);
 
@@ -289,11 +298,20 @@ public:
 		return *this;
 	}
 
-	CMessage& operator << (unsigned long long ullValue)
-	{
-		unsigned long long* ullBuffer = (unsigned long long*)&mpPayloadPtr[mRear + 1];
+	//CMessage& operator << (INT64 value)
+	//{
+	//	*((INT64*)&mpPayloadPtr[mRear + 1]) = value;
 
-		*ullBuffer = ullValue;
+	//	mRear += sizeof(INT64);
+
+	//	mDataSize += sizeof(INT64);
+
+	//	return *this;
+	//}
+
+	CMessage& operator << (unsigned long long value)
+	{
+		*((unsigned long long*) & mpPayloadPtr[mRear + 1]) = value;
 
 		mRear += sizeof(unsigned long long);
 
@@ -303,17 +321,46 @@ public:
 	}
 
 
+	//CMessage& operator << (UINT64 value)
+	//{
+	//	*((UINT64*) & mpPayloadPtr[mRear + 1]) = value;
 
-	CMessage& operator >> (char& chValue)
+	//	mRear += sizeof(UINT64);
+
+	//	mDataSize += sizeof(UINT64);
+
+	//	return *this;
+	//}
+
+	CMessage& operator >> (bool& value)
 	{
-		if (mDataSize < sizeof(chValue))
+		if (mDataSize < sizeof(bool))
 		{
 			CExceptionObject exception(mpPayloadPtr, mRear + 1, L" char\n");
 
 			throw exception;
 		}
 
-		chValue = *(char*)&mpPayloadPtr[mFront + 1];
+		value = *((bool*)&mpPayloadPtr[mFront + 1]);
+
+		mFront += sizeof(bool);
+
+		mDataSize -= sizeof(bool);
+
+		return *this;
+	}
+
+
+	CMessage& operator >> (char& value)
+	{
+		if (mDataSize < sizeof(char))
+		{
+			CExceptionObject exception(mpPayloadPtr, mRear + 1, L" char\n");
+
+			throw exception;
+		}
+
+		value = *((char*)&mpPayloadPtr[mFront + 1]);
 
 		mFront += sizeof(char);
 
@@ -322,16 +369,16 @@ public:
 		return *this;
 	}
 
-	CMessage& operator >> (unsigned char& uchValue)
+	CMessage& operator >> (unsigned char& value)
 	{
-		if (mDataSize < sizeof(uchValue))
+		if (mDataSize < sizeof(unsigned char))
 		{
 			CExceptionObject exception(mpPayloadPtr, mRear + 1, L" unsigned char\n");
 
 			throw exception;
 		}
 
-		uchValue = *(unsigned char*)&mpPayloadPtr[mFront + 1];
+		value = *((unsigned char*)&mpPayloadPtr[mFront + 1]);
 
 		mFront += sizeof(char);
 
@@ -340,17 +387,16 @@ public:
 		return *this;
 	}
 
-	CMessage& operator >> (short& sValue)
+	CMessage& operator >> (short& value)
 	{
-
-		if (mDataSize < sizeof(sValue))
+		if (mDataSize < sizeof(short))
 		{
 			CExceptionObject exception(mpPayloadPtr, mRear + 1, L" short\n");
 
 			throw exception;
 		}
 
-		sValue = *(short*)&mpPayloadPtr[mFront + 1];
+		value = *((short*)&mpPayloadPtr[mFront + 1]);
 
 		mFront += sizeof(short);
 
@@ -359,16 +405,16 @@ public:
 		return *this;
 	}
 
-	CMessage& operator >> (unsigned short& usValue)
+	CMessage& operator >> (unsigned short& value)
 	{
-		if (mDataSize < sizeof(usValue))
+		if (mDataSize < sizeof(unsigned short))
 		{
 			CExceptionObject exception(mpPayloadPtr, mRear + 1, L" unsigned short\n");
 
 			throw exception;
 		}
 
-		usValue = *(unsigned short*)&mpPayloadPtr[mFront + 1];
+		value = *((unsigned short*)&mpPayloadPtr[mFront + 1]);
 
 		mFront += sizeof(short);
 
@@ -377,17 +423,16 @@ public:
 		return *this;
 	}
 
-	CMessage& operator >> (int& iValue)
+	CMessage& operator >> (int& value)
 	{
-
-		if (mDataSize < sizeof(iValue))
+		if (mDataSize < sizeof(int))
 		{
 			CExceptionObject exception(mpPayloadPtr, mRear + 1, L" int\n");
 
 			throw exception;
 		}
 
-		iValue = *(int*)&mpPayloadPtr[mFront + 1];
+		value = *((int*)&mpPayloadPtr[mFront + 1]);
 
 		mFront += sizeof(int);
 
@@ -396,16 +441,16 @@ public:
 		return *this;
 	}
 
-	CMessage& operator >> (unsigned int& uiValue)
+	CMessage& operator >> (unsigned int& value)
 	{
-		if (mDataSize < sizeof(uiValue))
+		if (mDataSize < sizeof(unsigned int))
 		{
 			CExceptionObject exception(mpPayloadPtr, mRear + 1, L" unsigned int\n");
 
 			throw exception;
 		}
 
-		uiValue = *(unsigned int*)&mpPayloadPtr[mFront + 1];
+		value = *((unsigned int*)&mpPayloadPtr[mFront + 1]);
 
 		mFront += sizeof(int);
 
@@ -414,17 +459,17 @@ public:
 		return *this;
 	}
 
-	CMessage& operator >> (long& lValue)
+	CMessage& operator >> (long& value)
 	{
 
-		if (mDataSize < sizeof(lValue))
+		if (mDataSize < sizeof(long))
 		{
 			CExceptionObject exception(mpPayloadPtr, mRear + 1, L" long\n");
 
 			throw exception;
 		}
 
-		lValue = *(long*)&mpPayloadPtr[mFront + 1];
+		value = *((long*)&mpPayloadPtr[mFront + 1]);
 
 		mFront += sizeof(long);
 
@@ -433,17 +478,16 @@ public:
 		return *this;
 	}
 
-	CMessage& operator >> (unsigned long& ulValue)
+	CMessage& operator >> (unsigned long& value)
 	{
-
-		if (mDataSize < sizeof(ulValue))
+		if (mDataSize < sizeof(unsigned long))
 		{
 			CExceptionObject exception(mpPayloadPtr, mRear + 1, L" unsigned long\n");
 
 			throw exception;
 		}
 
-		ulValue = *(unsigned long*)&mpPayloadPtr[mFront + 1];
+		value = *((unsigned long*)&mpPayloadPtr[mFront + 1]);
 
 		mFront += sizeof(long);
 
@@ -452,7 +496,7 @@ public:
 		return *this;
 	}
 
-	CMessage& operator >> (long long& llValue)
+	CMessage& operator >> (long long& value)
 	{
 		if (mDataSize < sizeof(long long))
 		{
@@ -461,7 +505,7 @@ public:
 			throw exception;
 		}
 
-		llValue = *(long long*)&mpPayloadPtr[mFront + 1];
+		value = *((long long*)&mpPayloadPtr[mFront + 1]);
 
 		mFront += sizeof(long long);
 
@@ -470,7 +514,7 @@ public:
 		return *this;
 	}
 
-	CMessage& operator >> (unsigned long long& ullValue)
+	CMessage& operator >> (unsigned long long& value)
 	{
 		if (mDataSize < sizeof(unsigned long long))
 		{
@@ -479,7 +523,7 @@ public:
 			throw exception;
 		}
 
-		ullValue = *(unsigned long long*)&mpPayloadPtr[mFront + 1];
+		value = *((unsigned long long*)&mpPayloadPtr[mFront + 1]);
 
 		mFront += sizeof(unsigned long long);
 
@@ -526,19 +570,20 @@ private:
 
 		stNetHeader netHeader;
 
-		netHeader.code = 0x89;
+		netHeader.code = 0x77;
 		netHeader.payloadSize = mDataSize;
 		netHeader.randomKey = rand();
 		netHeader.checkSum = makeCheckSum();
 
 		setNetHeader(&netHeader);
 
-		BYTE encodeKey = 0;
-		BYTE encodeData = 0;
+		BYTE encodeKey = NULL;
+		BYTE encodeData = NULL;
 
 		BYTE* pEncodeData = (BYTE*)(mpPayloadPtr - 1);
 
-		for (int index = 0; index < mDataSize + 1; ++index)
+		int length = mDataSize - 4;
+		for (int index = 0; index < length; ++index)
 		{
 			encodeKey = pEncodeData[index] ^ (encodeKey + netHeader.randomKey + index + 1);
 
@@ -575,6 +620,8 @@ private:
 			encodeKey = decodeData ^ (encodeKey + randomKey + index + 1);
 			encodeData = encodeKey ^ (encodeData + mStaticKey + index + 1);
 		}
+		
+		removeNetHeader();
 
 		if (pDecodeData[0] != makeCheckSum())
 		{
@@ -582,7 +629,6 @@ private:
 		}
 
 		return true;
-
 	}
 
 	bool decoding(stNetHeader* pNetHeader)
@@ -599,19 +645,27 @@ private:
 
 		BYTE* pDecodeData = (BYTE*)(mpPayloadPtr - 1);
 
-		int length = mDataSize + 1;
+		decodeKey = pNetHeader->checkSum ^ (encodeKey + randomKey + 1);
+		decodeData = decodeKey ^ (encodeData + mStaticKey + 1);
+
+		pNetHeader->checkSum = decodeData;
+
+		encodeKey = decodeData ^ (encodeKey + randomKey + 1);
+		encodeData = encodeKey ^ (encodeData + mStaticKey + 1);
+
+		int length = mDataSize;
 		for (int index = 0; index < length; ++index)
 		{
-			decodeKey = pDecodeData[index] ^ (encodeKey + randomKey + index + 1);
-			decodeData = decodeKey ^ (encodeData + mStaticKey + index + 1);
+			decodeKey = pDecodeData[index] ^ (encodeKey + randomKey + index + 2);
+			decodeData = decodeKey ^ (encodeData + mStaticKey + index + 2);
 
 			pDecodeData[index] = decodeData;
 
-			encodeKey = decodeData ^ (encodeKey + randomKey + index + 1);
-			encodeData = encodeKey ^ (encodeData + mStaticKey + index + 1);
+			encodeKey = decodeData ^ (encodeKey + randomKey + index + 2);
+			encodeData = encodeKey ^ (encodeData + mStaticKey + index + 2);
 		}
 
-		if (pDecodeData[0] != makeCheckSum())
+		if (pNetHeader->checkSum != makeCheckSum())
 		{
 			return false;
 		}
@@ -621,14 +675,14 @@ private:
 
 	BYTE makeCheckSum()
 	{
-		BYTE checkSum = 0;
+		int checkSum = 0;
 		
 		for (int offset = 0; offset < mDataSize; ++offset)
 		{
 			checkSum += *(mpPayloadPtr + offset);
 		}
 
-		return checkSum;
+		return (checkSum % 256);
 	}
 
 	void setLanHeader(stLanHeader* pLanHeader)
@@ -642,18 +696,32 @@ private:
 
 	void setNetHeader(stNetHeader* pNetHeader)
 	{
-		mpHeaderPtr -= sizeof(pNetHeader);
+		mpHeaderPtr -= sizeof(stNetHeader);
 
 		*((stNetHeader*)mpHeaderPtr) = *pNetHeader;
 
 		mDataSize += sizeof(stNetHeader);
 	}	
 
+	void removeLanHeader()
+	{
+		mpHeaderPtr += sizeof(stLanHeader);
+
+		mDataSize -= sizeof(stLanHeader);
+	}
+
+	void removeNetHeader()
+	{
+		mpHeaderPtr += sizeof(stNetHeader);
+
+		mDataSize -= sizeof(stNetHeader);
+	}
+
 	static CLockFreeObjectFreeList<CMessage> mMessageFreeList;
 
 	static CTLSLockFreeObjectFreeList<CMessage> mTlsMessageFreeList;
 	
-	const static BYTE mStaticKey = 0xa9;
+	const static BYTE mStaticKey = 0x32;
 
 	bool mbEndcodingFlag;
 	

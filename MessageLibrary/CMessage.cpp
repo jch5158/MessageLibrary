@@ -1,8 +1,6 @@
 #include "stdafx.h"
 
 
-SRWLOCK CExceptionObject::mSrwLock;
-
 CLockFreeObjectFreeList<CMessage> CMessage::mMessageFreeList(0, false);
 
 CTLSLockFreeObjectFreeList<CMessage> CMessage::mTlsMessageFreeList(0, false);
