@@ -5,14 +5,6 @@
       <UniqueIdentifier>{4FC737F1-C7A5-4376-A066-2A32D752A2FF}</UniqueIdentifier>
       <Extensions>cpp;c;cc;cxx;c++;cppm;ixx;def;odl;idl;hpj;bat;asm;asmx</Extensions>
     </Filter>
-    <Filter Include="헤더 파일">
-      <UniqueIdentifier>{93995380-89BD-4b04-88EB-625FBE52EBFB}</UniqueIdentifier>
-      <Extensions>h;hh;hpp;hxx;h++;hm;inl;inc;ipp;xsd</Extensions>
-    </Filter>
-    <Filter Include="리소스 파일">
-      <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
-      <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav;mfcribbon-ms</Extensions>
-    </Filter>
     <Filter Include="Library">
       <UniqueIdentifier>{35990c3c-4457-46e3-b22c-9424240ba3dd}</UniqueIdentifier>
     </Filter>
@@ -25,12 +17,16 @@
     <Filter Include="Library\Dump">
       <UniqueIdentifier>{09aed296-5968-4079-bcfa-44036e319973}</UniqueIdentifier>
     </Filter>
+    <Filter Include="PCH">
+      <UniqueIdentifier>{93995380-89BD-4b04-88EB-625FBE52EBFB}</UniqueIdentifier>
+      <Extensions>h;hh;hpp;hxx;h++;hm;inl;inc;ipp;xsd</Extensions>
+    </Filter>
+    <Filter Include="Library\CystemLog">
+      <UniqueIdentifier>{bdfebc5c-5447-433e-9f2f-81d955b32d66}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="MessageLibrary.cpp">
-      <Filter>소스 파일</Filter>
-    </ClCompile>
-    <ClCompile Include="stdafx.cpp">
       <Filter>소스 파일</Filter>
     </ClCompile>
     <ClCompile Include="CMessage.cpp">
@@ -45,10 +41,16 @@
     <ClCompile Include="..\..\DumpLibrary\DumpLibrary\CCrashDump.cpp">
       <Filter>Library\Dump</Filter>
     </ClCompile>
+    <ClCompile Include="stdafx.cpp">
+      <Filter>PCH</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\SystemLogLibrary\SystemLogLibrary\CSystemLog.cpp">
+      <Filter>Library\CystemLog</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="stdafx.h">
-      <Filter>헤더 파일</Filter>
+      <Filter>PCH</Filter>
     </ClInclude>
     <ClInclude Include="CMessage.h">
       <Filter>Library\Message</Filter>
@@ -61,6 +63,9 @@
     </ClInclude>
     <ClInclude Include="..\..\DumpLibrary\DumpLibrary\CCrashDump.h">
       <Filter>Library\Dump</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\SystemLogLibrary\SystemLogLibrary\CSystemLog.h">
+      <Filter>Library\CystemLog</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

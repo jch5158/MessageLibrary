@@ -1,5 +1,5 @@
 ﻿
-#include "stdafx.h"
+#include "CMessage.h"
 
 int wmain()
 {

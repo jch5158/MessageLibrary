@@ -88,8 +88,9 @@
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>WIN32;_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
-      <AdditionalIncludeDirectories>C:\Users\jch35\Desktop\Project\Library\</AdditionalIncludeDirectories>
-      <PrecompiledHeader>Use</PrecompiledHeader>
+      <AdditionalIncludeDirectories>C:\Users\jch35\OneDrive\바탕 화면\Project\Library\</AdditionalIncludeDirectories>
+      <PrecompiledHeader>NotUsing</PrecompiledHeader>
+      <LanguageStandard>stdcpp17</LanguageStandard>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -104,9 +105,10 @@
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>WIN32;NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
-      <AdditionalIncludeDirectories>C:\Users\jch35\Desktop\Project\Library\</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>C:\Users\jch35\OneDrive\바탕 화면\Project\Library\</AdditionalIncludeDirectories>
       <Optimization>Disabled</Optimization>
-      <PrecompiledHeader>Use</PrecompiledHeader>
+      <PrecompiledHeader>NotUsing</PrecompiledHeader>
+      <LanguageStandard>stdcpp17</LanguageStandard>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -121,8 +123,9 @@
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
-      <AdditionalIncludeDirectories>C:\Users\jch35\Desktop\Project\Library\</AdditionalIncludeDirectories>
-      <PrecompiledHeader>Use</PrecompiledHeader>
+      <AdditionalIncludeDirectories>C:\Users\jch35\OneDrive\바탕 화면\Project\Library\</AdditionalIncludeDirectories>
+      <PrecompiledHeader>NotUsing</PrecompiledHeader>
+      <LanguageStandard>stdcpp17</LanguageStandard>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -137,9 +140,10 @@
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
-      <AdditionalIncludeDirectories>C:\Users\jch35\Desktop\Project\Library\</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>C:\Users\jch35\OneDrive\바탕 화면\Project\Library\</AdditionalIncludeDirectories>
       <Optimization>Disabled</Optimization>
-      <PrecompiledHeader>Use</PrecompiledHeader>
+      <PrecompiledHeader>NotUsing</PrecompiledHeader>
+      <LanguageStandard>stdcpp17</LanguageStandard>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -152,6 +156,7 @@
     <ClCompile Include="..\..\DumpLibrary\DumpLibrary\CCrashDump.cpp" />
     <ClCompile Include="..\..\LockFreeObjectFreeList\ObjectFreeListLib\CLockFreeObjectFreeList.cpp" />
     <ClCompile Include="..\..\LockFreeObjectFreeList\ObjectFreeListLib\CTLSLockFreeObjectFreeList.cpp" />
+    <ClCompile Include="..\..\SystemLogLibrary\SystemLogLibrary\CSystemLog.cpp" />
     <ClCompile Include="CMessage.cpp" />
     <ClCompile Include="MessageLibrary.cpp" />
     <ClCompile Include="stdafx.cpp">
@@ -165,6 +170,7 @@
     <ClInclude Include="..\..\DumpLibrary\DumpLibrary\CCrashDump.h" />
     <ClInclude Include="..\..\LockFreeObjectFreeList\ObjectFreeListLib\CLockFreeObjectFreeList.h" />
     <ClInclude Include="..\..\LockFreeObjectFreeList\ObjectFreeListLib\CTLSLockFreeObjectFreeList.h" />
+    <ClInclude Include="..\..\SystemLogLibrary\SystemLogLibrary\CSystemLog.h" />
     <ClInclude Include="CMessage.h" />
     <ClInclude Include="stdafx.h" />
   </ItemGroup>

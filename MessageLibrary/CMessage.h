@@ -1,5 +1,14 @@
 #pragma once
 
+#include <iostream>
+#include <Windows.h>
+
+#include "DumpLibrary/DumpLibrary/CCrashDump.h"
+#include "SystemLogLibrary/SystemLogLibrary/CSystemLog.h"
+#include "CMessage.h"
+//#include "LockFreeObjectFreeList/ObjectFreeListLib/CLockFreeObjectFreeList.h"
+#include "LockFreeObjectFreeList/ObjectFreeListLib/CTLSLockFreeObjectFreeList.h"
+
 template <class DATA>
 class CLockFreeObjectFreeList;
 
@@ -90,6 +99,7 @@ public:
 
 	void Clear(void)
 	{
+		mbEndcodingFlag = false;
 		mFront = -1;
 		mRear = -1;
 		mDataSize = 0;
@@ -152,7 +162,6 @@ public:
 	{
 		return InterlockedDecrement(&mReferenceCount);
 	}
-
 
 	CMessage& operator << (bool value)
 	{
@@ -532,9 +541,11 @@ public:
 		return *this;
 	}
 
+	
 	static CMessage* Alloc();
 
 	bool Free();
+
 
 private:
 
@@ -561,6 +572,17 @@ private:
 		Release();
 	}
 
+	static void SetStaticKey(BYTE staticKey)
+	{
+		mStaticKey = staticKey;
+	}
+
+	static void SetHeaderCode(BYTE headerCode)
+	{
+		mHeaderCode = headerCode;
+	}
+
+
 	void endcoding()
 	{
 		if (mbEndcodingFlag == true)
@@ -570,7 +592,7 @@ private:
 
 		stNetHeader netHeader;
 
-		netHeader.code = 0x77;
+		netHeader.code = mHeaderCode;
 		netHeader.payloadSize = mDataSize;
 		netHeader.randomKey = rand();
 		netHeader.checkSum = makeCheckSum();
@@ -643,7 +665,6 @@ private:
 
 		BYTE encodeData = NULL;
 
-		BYTE* pDecodeData = (BYTE*)(mpPayloadPtr - 1);
 
 		decodeKey = pNetHeader->checkSum ^ (encodeKey + randomKey + 1);
 		decodeData = decodeKey ^ (encodeData + mStaticKey + 1);
@@ -656,10 +677,10 @@ private:
 		int length = mDataSize;
 		for (int index = 0; index < length; ++index)
 		{
-			decodeKey = pDecodeData[index] ^ (encodeKey + randomKey + index + 2);
+			decodeKey = mpPayloadPtr[index] ^ (encodeKey + randomKey + index + 2);
 			decodeData = decodeKey ^ (encodeData + mStaticKey + index + 2);
 
-			pDecodeData[index] = decodeData;
+			mpPayloadPtr[index] = decodeData;
 
 			encodeKey = decodeData ^ (encodeKey + randomKey + index + 2);
 			encodeData = encodeKey ^ (encodeData + mStaticKey + index + 2);
@@ -717,11 +738,13 @@ private:
 		mDataSize -= sizeof(stNetHeader);
 	}
 
-	static CLockFreeObjectFreeList<CMessage> mMessageFreeList;
+	inline static CLockFreeObjectFreeList<CMessage> mMessageFreeList = { 0,false };
 
-	static CTLSLockFreeObjectFreeList<CMessage> mTlsMessageFreeList;
+	inline static CTLSLockFreeObjectFreeList<CMessage> mTlsMessageFreeList = { 0,false };
 	
-	const static BYTE mStaticKey = 0x32;
+	inline static BYTE mHeaderCode = 0;
+
+	inline static BYTE mStaticKey = 0;
 
 	bool mbEndcodingFlag;
 	

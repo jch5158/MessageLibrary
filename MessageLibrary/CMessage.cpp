@@ -1,12 +1,18 @@
 #include "stdafx.h"
+#include "CMessage.h"
 
 
-CLockFreeObjectFreeList<CMessage> CMessage::mMessageFreeList(0, false);
+//CLockFreeObjectFreeList<CMessage> CMessage::mMessageFreeList(0, false);
+//
+//CTLSLockFreeObjectFreeList<CMessage> CMessage::mTlsMessageFreeList(0, false);
+//
+//BYTE CMessage::mHeaderCode = 0;
+//
+//BYTE CMessage::mStaticKey = 0;
 
-CTLSLockFreeObjectFreeList<CMessage> CMessage::mTlsMessageFreeList(0, false);
 
 CMessage* CMessage::Alloc()
-{	
+{
 	//CMessage* pMessage = mMessageFreeList.Alloc();
 
 	CMessage* pMessage = mTlsMessageFreeList.Alloc();
@@ -21,9 +27,11 @@ CMessage* CMessage::Alloc()
 
 bool CMessage::Free()
 {
+
 	if (SubReferenceCount() == 0)
-	{	
-		//if (mMessageFreeList.Free(this) == false)		
+	{
+		//if (mMessageFreeList.Free(this) == false)				
+
 		if (mTlsMessageFreeList.Free(this) == false)
 		{
 			return false;
@@ -31,4 +39,5 @@ bool CMessage::Free()
 	}
 
 	return true;
+
 }
