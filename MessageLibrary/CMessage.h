@@ -55,7 +55,7 @@ private:
 };
 
 
-class  CMessage
+class CMessage
 {
 private:
 
@@ -77,10 +77,9 @@ private:
 public:
 
 	// 헤더 셋팅을 위한 friend
-	friend class CNetServer;
+	friend class CNetClient;
 
-	// 헤더 셋팅을 위한 friend
-	friend class CLanServer;
+	friend class CNetServer;
 
 	// CObjectFreeList에서 생성자 및 소멸자를 위한 friend
 	template <class DATA>
@@ -92,13 +91,14 @@ public:
 	template <class DATA>
 	friend class CChunk;
 
-	void Release(void)
+	inline void Release(void)
 	{
 		free(mpBufferPtr);
 	}
 
-	void Clear(void)
+	inline void Clear(void)
 	{
+		//mReferenceCount = 0;
 		mbEndcodingFlag = false;
 		mFront = -1;
 		mRear = -1;
@@ -106,22 +106,22 @@ public:
 		mpHeaderPtr = mpBufferPtr + sizeof(stNetHeader);
 	}
 
-	int GetBufferSize(void)
+	inline int GetBufferSize(void)
 	{
 		return mBufferLen;
 	}
 
-	int GetUseSize(void)
+	inline int GetUseSize(void)
 	{
 		return mDataSize;
 	}
 
-	char* GetMessagePtr(void)
+	inline char* GetMessagePtr(void)
 	{
 		return mpHeaderPtr;
 	}
 
-	int MoveWritePos(int iSize)
+	inline int MoveWritePos(int iSize)
 	{
 		mDataSize += iSize;
 
@@ -130,7 +130,7 @@ public:
 		return iSize;
 	}
 
-	int MoveReadPos(int iSize)
+	inline int MoveReadPos(int iSize)
 	{
 		mDataSize -= iSize;
 
@@ -139,31 +139,31 @@ public:
 		return iSize;
 	}
 
-	int GetPayload(char* chpDest, int iSize)
+	inline int GetPayload(char* chpDest, int iSize)
 	{
 		memcpy(chpDest, &mpPayloadPtr[mFront + 1], iSize);
 
 		return iSize;
 	}
 
-	int PutPayload(char* chpSrc, int iSize)
+	inline int PutPayload(char* chpSrc, int iSize)
 	{
 		memcpy(&mpPayloadPtr[mRear + 1], chpSrc, iSize);
 
 		return iSize;
 	}
 
-	void AddReferenceCount(void)
+	inline void AddReferenceCount(void)
 	{
 		InterlockedIncrement(&mReferenceCount);
 	}
 
-	long SubReferenceCount(void)
+	inline long SubReferenceCount(void)
 	{
 		return InterlockedDecrement(&mReferenceCount);
 	}
 
-	CMessage& operator << (bool value)
+	inline CMessage& operator << (bool value)
 	{
 		mpPayloadPtr[mRear + 1] = value;
 
@@ -175,7 +175,7 @@ public:
 	}
 
 
-	CMessage& operator << (char value)
+	inline CMessage& operator << (char value)
 	{
 		mpPayloadPtr[mRear + 1] = value;
 
@@ -186,7 +186,7 @@ public:
 		return *this;
 	}
 
-	CMessage& operator << (unsigned char value)
+	inline CMessage& operator << (unsigned char value)
 	{
 		mpPayloadPtr[mRear + 1] = (unsigned char)value;
 
@@ -208,7 +208,7 @@ public:
 	//	return *this;
 	//}
 
-	CMessage& operator << (short value)
+	inline CMessage& operator << (short value)
 	{
 		*((short*)&mpPayloadPtr[mRear + 1]) = value;
 
@@ -219,7 +219,7 @@ public:
 		return *this;
 	}
 
-	CMessage& operator << (unsigned short value)
+	inline CMessage& operator << (unsigned short value)
 	{
 		*((unsigned short*)&mpPayloadPtr[mRear + 1]) = value;
 
@@ -241,7 +241,7 @@ public:
 	//	return *this;
 	//}
 
-	CMessage& operator << (int value)
+	inline CMessage& operator << (int value)
 	{		
 		*((int*)&mpPayloadPtr[mRear + 1]) = value;
 
@@ -252,7 +252,7 @@ public:
 		return *this;
 	}
 
-	CMessage& operator << (unsigned int value)
+	inline CMessage& operator << (unsigned int value)
 	{	
 		*((unsigned int*)&mpPayloadPtr[mRear + 1]) = value;
 
@@ -263,7 +263,7 @@ public:
 		return *this;
 	}
 
-	CMessage& operator << (long value)
+	inline CMessage& operator << (long value)
 	{
 		*((long*)&mpPayloadPtr[mRear + 1]) = value;
 
@@ -274,7 +274,7 @@ public:
 		return *this;
 	}
 
-	CMessage& operator << (unsigned long value)
+	inline CMessage& operator << (unsigned long value)
 	{		
 		*((unsigned long*)&mpPayloadPtr[mRear + 1]) = value;
 
@@ -296,7 +296,7 @@ public:
 	//	return *this;
 	//}
 
-	CMessage& operator << (long long value)
+	inline CMessage& operator << (long long value)
 	{
 		*((long long*)&mpPayloadPtr[mRear + 1]) = value;
 
@@ -318,7 +318,7 @@ public:
 	//	return *this;
 	//}
 
-	CMessage& operator << (unsigned long long value)
+	inline CMessage& operator << (unsigned long long value)
 	{
 		*((unsigned long long*) & mpPayloadPtr[mRear + 1]) = value;
 
@@ -341,7 +341,7 @@ public:
 	//	return *this;
 	//}
 
-	CMessage& operator >> (bool& value)
+	inline CMessage& operator >> (bool& value)
 	{
 		if (mDataSize < sizeof(bool))
 		{
@@ -360,7 +360,7 @@ public:
 	}
 
 
-	CMessage& operator >> (char& value)
+	inline CMessage& operator >> (char& value)
 	{
 		if (mDataSize < sizeof(char))
 		{
@@ -378,7 +378,7 @@ public:
 		return *this;
 	}
 
-	CMessage& operator >> (unsigned char& value)
+	inline CMessage& operator >> (unsigned char& value)
 	{
 		if (mDataSize < sizeof(unsigned char))
 		{
@@ -396,7 +396,7 @@ public:
 		return *this;
 	}
 
-	CMessage& operator >> (short& value)
+	inline CMessage& operator >> (short& value)
 	{
 		if (mDataSize < sizeof(short))
 		{
@@ -414,7 +414,7 @@ public:
 		return *this;
 	}
 
-	CMessage& operator >> (unsigned short& value)
+	inline CMessage& operator >> (unsigned short& value)
 	{
 		if (mDataSize < sizeof(unsigned short))
 		{
@@ -432,7 +432,7 @@ public:
 		return *this;
 	}
 
-	CMessage& operator >> (int& value)
+	inline CMessage& operator >> (int& value)
 	{
 		if (mDataSize < sizeof(int))
 		{
@@ -450,7 +450,7 @@ public:
 		return *this;
 	}
 
-	CMessage& operator >> (unsigned int& value)
+	inline CMessage& operator >> (unsigned int& value)
 	{
 		if (mDataSize < sizeof(unsigned int))
 		{
@@ -468,7 +468,7 @@ public:
 		return *this;
 	}
 
-	CMessage& operator >> (long& value)
+	inline CMessage& operator >> (long& value)
 	{
 
 		if (mDataSize < sizeof(long))
@@ -487,7 +487,7 @@ public:
 		return *this;
 	}
 
-	CMessage& operator >> (unsigned long& value)
+	inline CMessage& operator >> (unsigned long& value)
 	{
 		if (mDataSize < sizeof(unsigned long))
 		{
@@ -505,7 +505,7 @@ public:
 		return *this;
 	}
 
-	CMessage& operator >> (long long& value)
+	inline CMessage& operator >> (long long& value)
 	{
 		if (mDataSize < sizeof(long long))
 		{
@@ -523,7 +523,7 @@ public:
 		return *this;
 	}
 
-	CMessage& operator >> (unsigned long long& value)
+	inline CMessage& operator >> (unsigned long long& value)
 	{
 		if (mDataSize < sizeof(unsigned long long))
 		{
@@ -542,9 +542,35 @@ public:
 	}
 
 	
-	static CMessage* Alloc();
+	static inline CMessage* Alloc(void)
+	{
+		//CMessage* pMessage = mMessageFreeList.Alloc();
 
-	bool Free();
+		CMessage* pMessage = mTlsMessageFreeList.Alloc();
+
+		pMessage->Clear();
+
+		pMessage->AddReferenceCount();
+
+		return pMessage;
+	}
+
+
+	inline bool Free()
+	{
+		if (SubReferenceCount() == 0)
+		{
+			//if (mMessageFreeList.Free(this) == false)				
+
+			if (mTlsMessageFreeList.Free(this) == false)
+			{
+				return false;
+			}
+		}
+
+		return true;
+	}
+
 
 
 private:
@@ -572,18 +598,19 @@ private:
 		Release();
 	}
 
-	static void SetStaticKey(BYTE staticKey)
-	{
-		mStaticKey = staticKey;
-	}
+	//static void SetStaticKey(BYTE staticKey)
+	//{
+	//	mStaticKey = staticKey;
+	//}
 
-	static void SetHeaderCode(BYTE headerCode)
-	{
-		mHeaderCode = headerCode;
-	}
+	//static void SetHeaderCode(BYTE headerCode)
+	//{
+	//	mHeaderCode = headerCode;
+	//}
 
 
-	void endcoding()
+
+	inline void encode(void)
 	{
 		if (mbEndcodingFlag == true)
 		{
@@ -617,7 +644,8 @@ private:
 		mbEndcodingFlag = true;
 	}
 
-	bool decoding()
+
+	inline bool decode(void)
 	{
 		BYTE randomKey =  ((stNetHeader*)GetMessagePtr())->randomKey;
 
@@ -653,7 +681,8 @@ private:
 		return true;
 	}
 
-	bool decoding(stNetHeader* pNetHeader)
+
+	inline bool decode(stNetHeader* pNetHeader)
 	{
 		BYTE randomKey = pNetHeader->randomKey;
 
@@ -664,7 +693,6 @@ private:
 		BYTE decodeData = NULL;
 
 		BYTE encodeData = NULL;
-
 
 		decodeKey = pNetHeader->checkSum ^ (encodeKey + randomKey + 1);
 		decodeData = decodeKey ^ (encodeData + mStaticKey + 1);
@@ -694,7 +722,7 @@ private:
 		return true;
 	}
 
-	BYTE makeCheckSum()
+	inline BYTE makeCheckSum(void)
 	{
 		int checkSum = 0;
 		
@@ -702,11 +730,11 @@ private:
 		{
 			checkSum += *(mpPayloadPtr + offset);
 		}
-
-		return (checkSum % 256);
+		
+		return checkSum & 0x000000ff;
 	}
 
-	void setLanHeader(stLanHeader* pLanHeader)
+	inline void setLanHeader(stLanHeader* pLanHeader)
 	{			
 		mpHeaderPtr -= sizeof(stLanHeader);
 
@@ -715,7 +743,7 @@ private:
 		mDataSize += sizeof(stLanHeader);
 	}
 
-	void setNetHeader(stNetHeader* pNetHeader)
+	inline void setNetHeader(stNetHeader* pNetHeader)
 	{
 		mpHeaderPtr -= sizeof(stNetHeader);
 
@@ -724,35 +752,35 @@ private:
 		mDataSize += sizeof(stNetHeader);
 	}	
 
-	void removeLanHeader()
+	inline void removeLanHeader()
 	{
 		mpHeaderPtr += sizeof(stLanHeader);
 
 		mDataSize -= sizeof(stLanHeader);
 	}
 
-	void removeNetHeader()
+	inline void removeNetHeader()
 	{
 		mpHeaderPtr += sizeof(stNetHeader);
 
 		mDataSize -= sizeof(stNetHeader);
 	}
 
-	inline static CLockFreeObjectFreeList<CMessage> mMessageFreeList = { 0,false };
+	//inline static CLockFreeObjectFreeList<CMessage> mMessageFreeList = { 0,false };
 
-	inline static CTLSLockFreeObjectFreeList<CMessage> mTlsMessageFreeList = { 0,false };
+	inline static CTLSLockFreeObjectFreeList<CMessage> mTlsMessageFreeList = { 100,false };
 	
 	inline static BYTE mHeaderCode = 0;
 
 	inline static BYTE mStaticKey = 0;
 
-	bool mbEndcodingFlag;
-	
-	int mBufferLen;
+	bool mbEndcodingFlag;	
 
 	int mFront;
 
 	int mRear;
+
+	int mBufferLen;
 
 	int mDataSize;
 
